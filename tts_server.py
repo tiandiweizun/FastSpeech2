@@ -193,7 +193,7 @@ def tts(text: str = Body(..., description="文本内容"),
         if speaker_id < 0:
             raise HTTPException(status_code=400, detail="speaker_id must >= 0")
         elif speaker_id >= input.model.n_speaker:
-            raise HTTPException(status_code=400, detail=f"speaker_id must < f{input.model.n_speaker}")
+            raise HTTPException(status_code=400, detail=f"speaker_id must < {input.model.n_speaker}")
         ids = raw_texts = [text[:100]]
         speakers = np.array([speaker_id])
         if preprocess_config["preprocessing"]["text"]["language"] == "en":
