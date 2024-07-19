@@ -25,7 +25,7 @@ class FastSpeech2(nn.Module):
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
         )
         self.postnet = PostNet()
-
+        self.n_speaker = 0
         self.speaker_emb = None
         if model_config["multi_speaker"]:
             with open(
@@ -34,9 +34,9 @@ class FastSpeech2(nn.Module):
                 ),
                 "r",
             ) as f:
-                n_speaker = len(json.load(f))
+                self.n_speaker = len(json.load(f))
             self.speaker_emb = nn.Embedding(
-                n_speaker,
+                self.n_speaker,
                 model_config["transformer"]["encoder_hidden"],
             )
 

@@ -7,8 +7,8 @@ import numpy as np
 import torch
 import uvicorn
 import yaml
-from fastapi import FastAPI, Body
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import FastAPI, Body, HTTPException
+from fastapi.responses import StreamingResponse
 from g2p_en import G2p
 from pypinyin import pinyin, Style
 from text import text_to_sequence
@@ -183,16 +183,26 @@ input = None
 
 @app.post("/tts")
 def tts(text: str = Body(..., description="文本内容"),
-        speaker_id: int = Body(1, description="说话人id")):
-    ids = raw_texts = [text[:100]]
-    speakers = np.array([speaker_id])
-    if preprocess_config["preprocessing"]["text"]["language"] == "en":
-        texts = np.array([preprocess_english(text, preprocess_config)])
-    elif preprocess_config["preprocessing"]["text"]["language"] == "zh":
-        texts = np.array([preprocess_mandarin(text, preprocess_config)])
-    text_lens = np.array([len(texts[0])])
-    batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
-    return synthesize(input.model, input.restore_step, input.configs, input.vocoder, batchs, input.control_values)
+        speaker_id: int = Body(None, description="说话人id")):
+    if input.model.n_speaker == 0:
+        if speaker_id is not None:
+            raise HTTPException(status_code=400, detail="model is not support multi speaker")
+    else:
+        if speaker_id is None:
+            speaker_id = 0
+        if speaker_id < 0:
+            raise HTTPException(status_code=400, detail="speaker_id must >= 0")
+        elif speaker_id >= input.model.n_speaker:
+            raise HTTPException(status_code=400, detail=f"speaker_id must < f{input.model.n_speaker}")
+        ids = raw_texts = [text[:100]]
+        speakers = np.array([speaker_id])
+        if preprocess_config["preprocessing"]["text"]["language"] == "en":
+            texts = np.array([preprocess_english(text, preprocess_config)])
+        elif preprocess_config["preprocessing"]["text"]["language"] == "zh":
+            texts = np.array([preprocess_mandarin(text, preprocess_config)])
+        text_lens = np.array([len(texts[0])])
+        batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
+        return synthesize(input.model, input.restore_step, input.configs, input.vocoder, batchs, input.control_values)
 
 
 if __name__ == '__main__':
