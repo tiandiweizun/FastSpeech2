@@ -10,6 +10,7 @@ On the other hand, pitch spectrograms extracted by continuous wavelet transform 
 ![](./img/model.png)
 
 # Updates
+- 2024/7/19: Add http server
 - 2021/7/8: Release the checkpoint and audio samples of a multi-speaker English TTS model trained on LibriTTS
 - 2021/2/26: Support English and Mandarin TTS
 - 2021/2/26: Support multi-speaker TTS (AISHELL-3 and LibriTTS)
@@ -25,10 +26,24 @@ You can install the Python dependencies with
 ```
 pip3 install -r requirements.txt
 ```
-
+## Preparation
+1. `unzip -o 'hifigan/*.zip' -d "hifigan"`
+</br></br>
+Taking **AISHELL3** as en example(same as LJSpeech and LibriTTS):
+1. `mkdir -p output/ckpt/AISHELL3/  output/result/AISHELL3/`
+2.  download the [AISHELL3_600000.pth.tar](https://drive.google.com/drive/folders/1DOhZGlTLMbbAAFZmZGDdc77kz1PloS7F?usp=sharing),named as `600000.pth.tar`, and put them in `output/ckpt/AISHELL3`
+## Serving
+```
+ # server
+ python3 tts_server.py --m config/AISHELL3/model.yaml --restore_step 600000  -p config/AISHELL3/preprocess.yaml -t config/AISHELL3/train.yaml
+ # client
+ curl --location 'http://172.28.255.62:8005/tts' --header 'Content-Type: application/json' --data '{
+    "text": "你好呀,明天天气怎么样呢",
+    "speaker_id":190
+}'
+``` 
 ## Inference
 
-You have to download the [pretrained models](https://drive.google.com/drive/folders/1DOhZGlTLMbbAAFZmZGDdc77kz1PloS7F?usp=sharing) and put them in ``output/ckpt/LJSpeech/``,  ``output/ckpt/AISHELL3``, or ``output/ckpt/LibriTTS/``.
 
 For English single-speaker TTS, run
 ```

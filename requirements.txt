@@ -16,3 +16,5 @@ soundfile==0.10.3.post1
 tensorboard 
 tgt
 unidecode
+fastapi
+uvicorn
